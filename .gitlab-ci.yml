@@ -1,0 +1,14 @@
+stages:
+  - lint
+  - build_image
+  - deploy
+
+lint:
+  stage: lint
+  image: python:3.11
+  before_script:
+    - apt update
+    - apt install make
+    - make venv
+  script:
+    - make lint

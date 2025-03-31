@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+
+  postgres:
+    container_name: postgres
+    image: postgres:14.2
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - "../pgdata:/var/lib/postgresql/data"
+      - "../deployments/postgres/conf:/etc/postgresql/"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      start_period: 10s
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  backend:
+    container_name: backend
+    build:
+      context: ..
+      dockerfile: deployments/app/Dockerfile
+    volumes:
+      - "../places:/app/places"
+    env_file:
+      - dev.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy

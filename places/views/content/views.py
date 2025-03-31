@@ -20,10 +20,12 @@ async def get_places(
     limit: Optional[int] = Query(
         None, description="Ограничить количество возвращаемых мест"
     ),
-    offset: Optional[int] = Query(
+    offset: int = Query(
         0, description="Пропустить n количество вовращаемых мест"
     ),
-    locale: str = Query("ru", description="Язык локализации ('ru', 'en', ...)"),
+    locale: str = Query(
+        "ru", description="Язык локализации ('ru', 'en', ...)"
+    ),
 ):
     """
     Получить места по ID категории. Если category_id == None, возвращаем все места. Если ID предоставлено,

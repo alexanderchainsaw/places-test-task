@@ -48,7 +48,7 @@ WHERE ce.is_deleted = false
     AND ce.is_published = true
     AND ce.type >= 20
     AND tc.locale = _locale
-    AND cr.parent IN (SELECT node_id FROM category_tree)
+    AND cr.parent IN category_tree
 ORDER BY ce.priority DESC
 LIMIT _limit
 OFFSET _offset

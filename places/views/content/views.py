@@ -17,14 +17,17 @@ async def get_places(
         description="Если ID предоставлено, возвращаем все места данной категории и всех вложенных категорий."
         "Если нет, возвращаем все места",
     ),
+    locale: str = Query(
+        "ru",
+        description="Язык локализации ('ru', 'en', ...)",
+        min_length=2,
+        max_length=2,
+    ),
     limit: Optional[int] = Query(
-        None, description="Ограничить количество возвращаемых мест"
+        None, description="Ограничить количество возвращаемых мест", ge=1
     ),
     offset: int = Query(
-        0, description="Пропустить n количество вовращаемых мест"
-    ),
-    locale: str = Query(
-        "ru", description="Язык локализации ('ru', 'en', ...)"
+        0, description="Пропустить n количество вовращаемых мест", ge=0
     ),
 ):
     """

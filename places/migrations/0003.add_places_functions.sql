@@ -19,6 +19,8 @@ RETURNS TABLE (
     content TEXT,
     locale VARCHAR(2)
 ) AS $$
+
+-- Первое отличие от простой функции: рекурсивно собираем вложенные категории начиная с указанного id
 WITH RECURSIVE category_tree AS (
     SELECT _category_id AS node_id
     UNION ALL
@@ -27,6 +29,7 @@ WITH RECURSIVE category_tree AS (
     INNER JOIN category_tree ct ON cr.parent = ct.node_id
     WHERE cr.child IN (SELECT id FROM content_entity WHERE type < 20)
 )
+
 SELECT
     ce.id,
     ce.type,
@@ -53,8 +56,7 @@ AND ce.is_deleted = false
 AND ce.is_published = true
 AND tcd.locale = _locale
 AND tct.locale = _locale
-AND cr.parent in category_tree -- Есть ли parent в результате рекурсивного запроса
-
+AND cr.parent in category_tree -- Второе отличие от простой функции, проверяем есть ли parent в рекурсивно-собранных категориях
 ORDER BY ce.priority DESC
 LIMIT _limit
 OFFSET _offset

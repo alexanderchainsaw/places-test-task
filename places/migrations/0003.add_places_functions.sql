@@ -1,5 +1,6 @@
 
 -- Рекурсивная фукнция чтобы получить места категории и вложеных категорий
+-- Тоже самое что и простая функция ниже, но сначала рекурсивно собираем вложенные категории
 
 CREATE OR REPLACE FUNCTION get_category_places_recursive(
     _category_id INTEGER,
@@ -30,31 +31,37 @@ SELECT
     ce.id,
     ce.type,
     ce.priority,
-    tc.name,
-    tc.preview_photo_url,
+    tcd.name,
+    tcd.preview_photo_url,
     cr.parent AS category_id,
-    (
-        SELECT name
-        FROM translation_category
-        WHERE content_entity_id = cr.parent AND locale = _locale
-        LIMIT 1
-    ) AS category_name,
-    tc.content,
-    tc.locale
+    tct.name AS category_name,
+    tcd.content,
+    tcd.locale
 FROM content_entity ce
-INNER JOIN content_relations cr ON ce.id = cr.child
-INNER JOIN translation_card tc ON ce.id = tc.content_entity_id
-WHERE ce.is_deleted = false
-    AND ce.is_published = true
-    AND ce.type >= 20
-    AND tc.locale = _locale
-    AND cr.parent IN category_tree
+
+INNER JOIN translation_card tcd
+ON ce.id = tcd.content_entity_id
+
+INNER JOIN content_relations cr
+ON ce.id = cr.child
+
+INNER JOIN translation_category tct
+ON cr.parent = tct.content_entity_id
+
+WHERE ce.type >= 20
+AND ce.is_deleted = false
+AND ce.is_published = true
+AND tcd.locale = _locale
+AND tct.locale = _locale
+AND cr.parent in category_tree -- Есть ли parent в результате рекурсивного запроса
+
 ORDER BY ce.priority DESC
 LIMIT _limit
 OFFSET _offset
 $$ LANGUAGE SQL STABLE;
 
 -- Простая функция чтобы получить все места
+-- Тоже самое что и функция выше но без рекурсивной части
 
 CREATE OR REPLACE FUNCTION get_all_places(
     _locale VARCHAR(2),
@@ -95,8 +102,8 @@ ON cr.parent = tct.content_entity_id
 WHERE ce.type >= 20
 AND ce.is_deleted = false
 AND ce.is_published = true
-AND tcd.locale = $1
-AND tct.locale = $1
+AND tcd.locale = _locale
+AND tct.locale = _locale
 
 ORDER BY ce.priority DESC
 LIMIT _limit
